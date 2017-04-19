@@ -80,6 +80,9 @@ public class HomeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void onDoor(View view) {
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -111,7 +114,18 @@ public class HomeActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_home, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
+
+            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+                case 0:
+
+                    return rootView;
+                case 1:
+                    return rootView;
+                case 2:
+                    return rootView;
+            }
+            return null;
+
         }
     }
 
