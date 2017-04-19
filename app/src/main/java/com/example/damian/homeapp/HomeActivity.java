@@ -116,15 +116,19 @@ public class HomeActivity extends AppCompatActivity {
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                case 0:
-
-                    return rootView;
                 case 1:
+                    ekran1();
                     return rootView;
                 case 2:
                     return rootView;
+                case 3:
+                    return rootView;
             }
             return null;
+
+        }
+
+        private void ekran1() {
 
         }
     }
