@@ -37,12 +37,14 @@ public class MainActivity extends AppCompatActivity {
 
     //obiekty statyczne aby po zamknieciu aplikacji byly nadal w pamieci
     private ServerThread serverThread;
-    private static ConnectToServerThread connectToServerThread = null;
+    protected static ConnectToServerThread connectToServerThread = null;
     private BluetoothAdapter bluetoothAdapter;
 
     BluetoothDevice defaultBluetoothDevice;
 
     static BluetoothAdapter mBluetoothAdapter;
+
+    static TextView wiadomosc;
 
     SharedPref config;
 
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         baseContext = getBaseContext();
         window = getWindow();
+
+        wiadomosc = (TextView) findViewById(R.id.wiadomosc);
 
         initializeRecivers();
     }
@@ -106,15 +110,6 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver(mReceiver, filter);
 
-    }
-
-
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
     }
 
     private void checkDevice() {
@@ -225,12 +220,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void garageButton(View view) {
         if (isConnected)
-            new WriteTask().execute("garage");
+            new WriteTask().execute("g");
     }
 
     public void gateButton(View view) {
         if (isConnected)
-            new WriteTask().execute("gate");
+            new WriteTask().execute("b");
     }
 
     public void homeButton(View view) {
@@ -241,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class WriteTask extends AsyncTask<String, Void, Void> {
+    public class WriteTask extends AsyncTask<String, Void, Void> {
         @Override
         protected Void doInBackground(String... args) {
             try {
@@ -261,10 +256,10 @@ public class MainActivity extends AppCompatActivity {
 
             int numOfBytesRecived = msg.arg1;
             byte[] buffer = (byte[]) msg.obj;
-            String strReceived = new String(buffer);
+            String strReceived = new String(buffer );
             strReceived = strReceived.substring(0, numOfBytesRecived);
 
-            System.out.println(strReceived);
+            wiadomosc.setText("x: " + buffer + " e " + strReceived);
 
         }
     };
@@ -304,5 +299,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 }

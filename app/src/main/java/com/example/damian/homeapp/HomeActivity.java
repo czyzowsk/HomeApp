@@ -1,8 +1,15 @@
 package com.example.damian.homeapp;
 
+import android.content.Context;
+import android.media.Image;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -11,13 +18,17 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.view.Window;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -36,10 +47,16 @@ public class HomeActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
+    static Context baseContext;
+    static Window window;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        window = getWindow();
+        baseContext = getBaseContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -57,6 +74,16 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(MainActivity.connectToServerThread != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                window.setStatusBarColor(ContextCompat.getColor(getApplicationContext(),
+                        R.color.colorPrimaryDarkConnected));
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -81,6 +108,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void onDoor(View view) {
+        new HomeActivity.WriteTask().execute("door");
     }
 
     /**
@@ -94,6 +122,8 @@ public class HomeActivity extends AppCompatActivity {
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() {
+
+
         }
 
         /**
@@ -112,15 +142,38 @@ public class HomeActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_home, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
+
+
+        //ekran 1:
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                 case 1:
-                    ekran1();
+                    final ImageView door = (ImageView) rootView.findViewById(R.id.imageButton);
+                    door.setVisibility(View.VISIBLE);
+                    final boolean[] closed = {false};
+
+                    door.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (!closed[0]) {
+                                door.setImageResource(R.drawable.ic_door);
+                                closed[0] = true;
+                                new HomeActivity.WriteTask().execute("door open");
+
+                            } else{
+                                door.setImageResource(R.drawable.ic_door_closed);
+                                closed[0] = false;
+                                new HomeActivity.WriteTask().execute("door closed");
+                            }
+                        }
+                    });
                     return rootView;
+        //ekran 2:
                 case 2:
+                    final ImageView door1 = (ImageView) rootView.findViewById(R.id.imageButton);
+                    door1.setVisibility(View.VISIBLE);
                     return rootView;
+        //ekran 3:
                 case 3:
                     return rootView;
             }
@@ -128,7 +181,17 @@ public class HomeActivity extends AppCompatActivity {
 
         }
 
-        private void ekran1() {
+    }
+
+    public static class WriteTask extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... args) {
+            try {
+                MainActivity.connectToServerThread.commsThread.write(args[0]);
+            } catch (Exception e) {
+                Log.d("MainActivity", e.getLocalizedMessage());
+            }
+            return null;
 
         }
     }
@@ -169,4 +232,23 @@ public class HomeActivity extends AppCompatActivity {
             return null;
         }
     }
+
+
+    static Handler UIupdater = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+
+            int numOfBytesRecived = msg.arg1;
+            byte[] buffer = (byte[]) msg.obj;
+            String strReceived = new String(buffer);
+            strReceived = strReceived.substring(0, numOfBytesRecived);
+
+            System.out.println(strReceived);
+
+
+        }
+    };
+
+
 }
