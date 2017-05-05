@@ -17,14 +17,26 @@ public class SharedPref {
         userLocalDatabase = context.getSharedPreferences(SP_name, 0);
     }
 
-    public void putDefaultDevice(String macAdress) {
+    public void putDefaultDevice(String macAdress, String name) {
         SharedPreferences.Editor spEditor = userLocalDatabase.edit();
         spEditor.putString("default_mac", macAdress);
+        spEditor.putString("default_name", name);
         spEditor.commit();
     }
 
     public String getDefaultDevice(){
-        return userLocalDatabase.getString("default_mac", "00:00:00:00:00:00");
+        return userLocalDatabase.getString("default_mac", null);
+    }
+
+    public String getDefaultDeviceName() {
+        return userLocalDatabase.getString("default_name", null);
+    }
+
+    public void removeDefaultDevice() {
+        SharedPreferences.Editor spEditor = userLocalDatabase.edit();
+        spEditor.remove("default_mac");
+        spEditor.remove("default_name");
+        spEditor.commit();
     }
 }
 

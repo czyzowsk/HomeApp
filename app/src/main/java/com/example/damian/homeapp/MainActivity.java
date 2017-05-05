@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -36,19 +37,13 @@ public class MainActivity extends AppCompatActivity {
     int REQUEST_LOCATION_SERVICE = 1;
 
     //obiekty statyczne aby po zamknieciu aplikacji byly nadal w pamieci
-    private ServerThread serverThread;
-    protected static ConnectToServerThread connectToServerThread = null;
-    private BluetoothAdapter bluetoothAdapter;
 
-    BluetoothDevice defaultBluetoothDevice;
-
-    static BluetoothAdapter mBluetoothAdapter;
 
     static TextView wiadomosc;
 
     SharedPref config;
 
-    private static boolean isConnected = false;
+    public static boolean isConnected;
 
     public static Context baseContext;
     static Window window;
@@ -60,29 +55,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Intent i = new Intent(this, TaskService.class);
+        startService(i);
+
         setContentView(R.layout.activity_main);
 
-        checkDevice();
+        checkLocationPermission();
 
         baseContext = getBaseContext();
         window = getWindow();
 
         wiadomosc = (TextView) findViewById(R.id.wiadomosc);
 
-        initializeRecivers();
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        if(connectToServerThread != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                window.setStatusBarColor(ContextCompat.getColor(baseContext,
-                        R.color.colorPrimaryDarkConnected));
-
-            isConnected = true;
-        }
     }
 
     @Override
@@ -93,51 +83,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-    }
-
-    private void initializeRecivers() {
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-
-        registerReceiver(mReceiver, filter);
-
-    }
-
-    private void checkDevice() {
-
-
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Nie mogę znaleźć urządzenia bluetooth. " +
-                    "Twoje urządzenie nie jest kompatybilne z tą aplikacją");
-            builder.setTitle("Uwaga!");
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finish();
-                }
-            });
-            builder.show();
-        } else {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            }
-            else {
-                if (checkLocationPermission())
-                    connectTo();
-            }
-        }
     }
 
 
@@ -161,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         if (requestCode == REQUEST_LOCATION_SERVICE) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                connectTo();
+
             }
             else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -177,55 +127,16 @@ public class MainActivity extends AppCompatActivity {
                 builder.show();
             }
         }
-
-    }
-
-
-    public void connectTo() {
-
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        config = new SharedPref(getApplicationContext());
-        boolean deviceFound = false;
-
-        if (connectToServerThread == null) {
-
-            Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-
-            if (pairedDevices.size() > 0) {
-                // There are paired devices. Get the name and address of each paired device.
-                for (BluetoothDevice device : pairedDevices) {
-                    if (device.getAddress().equals(config.getDefaultDevice())) {
-                        serverThread = new ServerThread(bluetoothAdapter);
-                        serverThread.start();
-
-                        defaultBluetoothDevice = device;
-                        connectToServerThread = new ConnectToServerThread(device, bluetoothAdapter);
-                        connectToServerThread.start();
-                        Toast.makeText(this, "Connecting with " + device.getName(),
-                                Toast.LENGTH_SHORT).show();
-                        deviceFound = true;
-                    }
-                }
-                if (deviceFound) {
-                } else {
-                    Intent i = new Intent(getApplicationContext(), FindDevicesActivity.class);
-                    startActivity(i);
-                }
-            } else {
-                Intent i = new Intent(getApplicationContext(), FindDevicesActivity.class);
-                startActivity(i);
-            }
-        }
     }
 
     public void garageButton(View view) {
         if (isConnected)
-            new WriteTask().execute("g");
+            new TaskService.WriteTask().execute("g");
     }
 
     public void gateButton(View view) {
         if (isConnected)
-            new WriteTask().execute("b");
+            new TaskService.WriteTask().execute("b");
     }
 
     public void homeButton(View view) {
@@ -233,20 +144,11 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
             startActivity(intent);
         }
-
     }
 
-    public class WriteTask extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... args) {
-            try {
-                connectToServerThread.commsThread.write(args[0]);
-            } catch (Exception e) {
-                Log.d("MainActivity", e.getLocalizedMessage());
-            }
-            return null;
-
-        }
+    public void onSettings(View view) {
+        Intent i = new Intent(this, SettingsActivity.class);
+        startActivity(i);
     }
 
     static Handler UIupdater = new Handler() {
@@ -264,38 +166,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    window.setStatusBarColor(ContextCompat.getColor(baseContext,
-                            R.color.colorPrimaryDarkConnected));
-
-                isConnected=true;
-            }
-            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    window.setStatusBarColor(ContextCompat.getColor(baseContext,
-                            R.color.colorPrimaryDarkDisconnected));
-                connectToServerThread.cancel();
-                connectToServerThread = null;
-                isConnected=false;
-            }
-        }
-    };
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == REQUEST_ENABLE_BT) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                if (checkLocationPermission())
-                    connectTo();
+                checkLocationPermission();
             }
         }
     }

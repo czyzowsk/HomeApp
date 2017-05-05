@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-public class FindDevicesActivity extends ListActivity {
+public class FindDevicesActivity extends ListActivity implements DialogInterface.OnClickListener {
 
     final ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
     final ArrayList<String> discoveredDevicesNames = new ArrayList<>();
@@ -78,7 +79,6 @@ public class FindDevicesActivity extends ListActivity {
                 public void onReceive(Context context, Intent intent) {
                     Toast.makeText(getBaseContext(), "Discovery completed",
                             Toast.LENGTH_SHORT).show();
-                    unregisterReceiver(discoveryFinishedReciver);
                 }
             };
         }
@@ -117,7 +117,8 @@ public class FindDevicesActivity extends ListActivity {
         }
 
         parrentDevice = deviceSelected.toString();
-        config.putDefaultDevice(parrentDevice);
+
+        config.putDefaultDevice(parrentDevice, deviceSelected.getName());
     }
 
     public boolean createBond(BluetoothDevice btDevice)
@@ -152,4 +153,17 @@ public class FindDevicesActivity extends ListActivity {
             }
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        unregisterReceiver(discoverDevicesReciver);
+        unregisterReceiver(discoveryFinishedReciver);
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+
+    }
 }

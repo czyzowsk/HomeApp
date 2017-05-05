@@ -75,17 +75,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(MainActivity.connectToServerThread != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                window.setStatusBarColor(ContextCompat.getColor(getApplicationContext(),
-                        R.color.colorPrimaryDarkConnected));
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_home, menu);
@@ -107,10 +96,6 @@ public class HomeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void onDoor(View view) {
-        new HomeActivity.WriteTask().execute("door");
-    }
-
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -123,77 +108,43 @@ public class HomeActivity extends AppCompatActivity {
 
         public PlaceholderFragment() {
 
-
         }
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
+
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_home, container, false);
-
-
-
-        //ekran 1:
-            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                case 1:
-                    final ImageView door = (ImageView) rootView.findViewById(R.id.imageButton);
-                    door.setVisibility(View.VISIBLE);
-                    final boolean[] closed = {false};
-
-                    door.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (!closed[0]) {
-                                door.setImageResource(R.drawable.ic_door);
-                                closed[0] = true;
-                                new HomeActivity.WriteTask().execute("door open");
-
-                            } else{
-                                door.setImageResource(R.drawable.ic_door_closed);
-                                closed[0] = false;
-                                new HomeActivity.WriteTask().execute("door closed");
-                            }
-                        }
-                    });
-                    return rootView;
-        //ekran 2:
-                case 2:
-                    final ImageView door1 = (ImageView) rootView.findViewById(R.id.imageButton);
-                    door1.setVisibility(View.VISIBLE);
-                    return rootView;
-        //ekran 3:
-                case 3:
-                    return rootView;
             }
+
+            @Override
+            public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                    Bundle savedInstanceState) {
+                View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+
+
+
+                switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+                    //ekran 1:
+                    case 1:
+                        return rootView;
+                    //ekran 2:
+                    case 2:
+                        return rootView;
+                    //ekran 3:
+                    case 3:
+                        return rootView;
+                }
             return null;
 
         }
 
-    }
-
-    public static class WriteTask extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... args) {
-            try {
-                MainActivity.connectToServerThread.commsThread.write(args[0]);
-            } catch (Exception e) {
-                Log.d("MainActivity", e.getLocalizedMessage());
-            }
-            return null;
-
-        }
     }
 
     /**
