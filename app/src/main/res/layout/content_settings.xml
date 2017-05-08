@@ -12,6 +12,4 @@
     android:orientation="horizontal"
     android:padding="8dp">
 
-
-
 </ListView>

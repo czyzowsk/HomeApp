@@ -1,6 +1,7 @@
 package com.example.damian.homeapp;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,17 +12,22 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Set;
 
-public class FindDevicesActivity extends ListActivity implements DialogInterface.OnClickListener {
+public class FindDevicesActivity extends ListActivity{
 
     final ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
     final ArrayList<String> discoveredDevicesNames = new ArrayList<>();
@@ -34,6 +40,9 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
 
     String parrentDevice;
 
+    RelativeLayout buttonLayout;
+    ProgressBar progressBar;
+
     //odbiornik (uruchamia sie gdy nastapi jakas akcja np odnajdzie jakies urzadzenie)
     private BroadcastReceiver discoverDevicesReciver = null;
     private BroadcastReceiver discoveryFinishedReciver = null;
@@ -43,11 +52,17 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_devices);
 
+        Intent intent = new Intent(getApplicationContext(),
+                TaskService.class);
+        stopService(intent);
+
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         config = new SharedPref(getApplicationContext());
         startDiscovering();
 
+        buttonLayout = (RelativeLayout) findViewById(R.id.button_refresh);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
     }
 
     public void startDiscovering(){
@@ -77,8 +92,10 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
             discoveryFinishedReciver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Toast.makeText(getBaseContext(), "Discovery completed",
-                            Toast.LENGTH_SHORT).show();
+
+                    progressBar.setVisibility(View.GONE);
+                    buttonLayout.setVisibility(View.VISIBLE);
+
                 }
             };
         }
@@ -97,28 +114,55 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
 
     }
 
-    public void onListItemClick(ListView parent, View v, int position, long id) {
+    public void onListItemClick(ListView parent, View v, final int position, long id) {
         //jesli jestem z kims polaczony
 
-        IntentFilter intent = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        registerReceiver(mPairReceiver, intent);
+        final Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+        final BluetoothDevice deviceSelected = discoveredDevices.get(position);
+        AlertDialog alertDialog = new AlertDialog.Builder(FindDevicesActivity.this).create();
+        alertDialog.setTitle("Połączenie");
+        alertDialog.setCancelable(true);
+        alertDialog.setMessage("Czy chcesz połączyć się z " + deviceSelected.getName());
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "TAK",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (!pairedDevices.contains(discoveredDevices.get(position))) {
+                            IntentFilter intent =
+                                    new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+                            registerReceiver(mPairReceiver, intent);
 
-        BluetoothDevice deviceSelected = discoveredDevices.get(position);
-        Boolean isBonded = false;
-        try {
-            isBonded = createBond(deviceSelected);
-            if(isBonded)
-            {
-                //arrayListpaired.add(bdDevice.getName()+"\n"+bdDevice.getAddress());
-                //adapter.notifyDataSetChanged();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                            Boolean isBonded = false;
+                            try {
+                                isBonded = createBond(deviceSelected);
+                                if (isBonded) {
 
-        parrentDevice = deviceSelected.toString();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
-        config.putDefaultDevice(parrentDevice, deviceSelected.getName());
+                            parrentDevice = deviceSelected.toString();
+                            config.putDefaultDevice(parrentDevice, deviceSelected.getName());
+                        }
+                        else {
+                            config.putDefaultDevice(deviceSelected.toString(),
+                                    deviceSelected.getName());
+                            finish();
+                        }
+                    }
+                });
+
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Anuluj",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+        alertDialog.show();
+
+
     }
 
     public boolean createBond(BluetoothDevice btDevice)
@@ -142,14 +186,14 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
 
                 if (state == BluetoothDevice.BOND_BONDED && prevState ==
                         BluetoothDevice.BOND_BONDING) {
-                    Toast.makeText(context ,"paired",Toast.LENGTH_LONG).show();
+                    Toast.makeText(context ,"Paired",Toast.LENGTH_LONG).show();
+                    unregisterReceiver(mPairReceiver);
                     finish();
 
                 } else if (state == BluetoothDevice.BOND_NONE && prevState ==
                         BluetoothDevice.BOND_BONDED){
                     Toast.makeText(context ,"Unpaired",Toast.LENGTH_LONG).show();
                 }
-
             }
         }
     };
@@ -160,10 +204,17 @@ public class FindDevicesActivity extends ListActivity implements DialogInterface
 
         unregisterReceiver(discoverDevicesReciver);
         unregisterReceiver(discoveryFinishedReciver);
+
+        Intent intent = new Intent(getApplicationContext(), TaskService.class);
+        startService(intent);
     }
 
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
+    public void onRefresh(View view){
+
+        startDiscovering();
+        buttonLayout.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
 
     }
+
 }

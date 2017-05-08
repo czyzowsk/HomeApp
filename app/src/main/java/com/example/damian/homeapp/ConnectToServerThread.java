@@ -50,7 +50,6 @@ public class ConnectToServerThread extends Thread {
             // w tym przypadku nie moza bylo sie polaczyc. zamykam gniazdo i wychodze
             try{
                 bluetoothSocket.close();
-
             }catch (IOException closeException){
                 Log.d("ConnectToServerTheard", closeException.getLocalizedMessage());
             }

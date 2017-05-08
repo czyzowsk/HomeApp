@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,8 +28,13 @@ import android.view.ViewGroup;
 
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.damian.homeapp.dodatki.VerticalProgressBar;
+import com.example.damian.homeapp.dodatki.VerticalSeekBar;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -57,6 +63,9 @@ public class HomeActivity extends AppCompatActivity {
 
         window = getWindow();
         baseContext = getBaseContext();
+
+
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,6 +114,8 @@ public class HomeActivity extends AppCompatActivity {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        TextView tempZadana;
+        TextView tempAktualna;
 
         public PlaceholderFragment() {
 
@@ -124,18 +135,74 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             @Override
-            public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                    Bundle savedInstanceState) {
-                View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+            public View onCreateView(final LayoutInflater inflater, ViewGroup container,
+                                     Bundle savedInstanceState) {
+                final View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+
+                VerticalSeekBar seekBar = (VerticalSeekBar) rootView.findViewById(R.id.temp_seekBar);
+                tempZadana = (TextView) rootView.findViewById(R.id.temp_zadana);
+                seekBar.setMax(16);
+
+                tempAktualna = (TextView) rootView.findViewById(R.id.temp_aktualna);
+
+                final VerticalProgressBar progressBar = (VerticalProgressBar)
+                        rootView.findViewById(R.id.temp_aktual);
+                progressBar.setMax(16);
+
+                final android.support.v7.widget.CardView cardView1 = (android.support.v7.widget.CardView)
+                        rootView.findViewById(R.id.card_1);
+
+                SeekBar lightSeekBar = (SeekBar) rootView.findViewById(R.id.light_seekBar);
+                final TextView lightTextView = (TextView) rootView.findViewById(R.id.light_text);
 
 
 
                 switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                     //ekran 1:
                     case 1:
+                        seekBar.setOnSeekBarChangeListener(new VerticalSeekBar.OnSeekBarChangeListener() {
+                        @Override
+                        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                            int temperatura = progress + 16;
+                            tempZadana.setText(temperatura + "°C");
+                            progressBar.setProgress(progress+5);
+                            tempAktualna.setText(temperatura+5 + "°C");
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {
+
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {
+
+                        }
+
+                    });
+                        lightSeekBar.setOnSeekBarChangeListener(new
+                                                                        SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress,
+                                                          boolean fromUser) {
+                                lightTextView.setText(progress + "%");
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                            }
+                        });
+
                         return rootView;
                     //ekran 2:
                     case 2:
+                        cardView1.setVisibility(View.GONE);
                         return rootView;
                     //ekran 3:
                     case 3:
@@ -174,11 +241,11 @@ public class HomeActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "PARTER";
                 case 1:
-                    return "SECTION 2";
+                    return "PIETRO 1";
                 case 2:
-                    return "SECTION 3";
+                    return "PODDASZE";
             }
             return null;
         }

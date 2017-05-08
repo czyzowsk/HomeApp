@@ -15,6 +15,13 @@
         android:theme="@style/AppTheme">
         <service android:name=".TaskService" />
 
+        <receiver android:name=".dodatki.SendMessage">
+            <intent-filter>
+                <action android:name="GARAZ"/>
+                <action android:name="BRAMA"/>
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -22,13 +29,12 @@
             android:theme="@style/FullscreenTheme">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
-
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
         <activity
             android:name=".FindDevicesActivity"
-            android:theme="@android:style/Theme.Holo.Light.Dialog">
+            android:theme="@android:style/Theme.Material.Dialog.NoActionBar.MinWidth">
         </activity>
         <activity
             android:name=".HomeActivity"

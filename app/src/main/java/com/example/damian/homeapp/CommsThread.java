@@ -3,6 +3,8 @@ package com.example.damian.homeapp;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
+import com.example.damian.homeapp.dodatki.MessageNotification;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,6 +39,8 @@ public class CommsThread extends Thread {
         byte[] buffer = new byte[1024];
 
         int bytes;
+        MainActivity.isConnected = true;
+
 
         // nasluchiwanie do czasu pojawienia sie wątku
 

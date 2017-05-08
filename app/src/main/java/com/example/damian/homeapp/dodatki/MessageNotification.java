@@ -1,4 +1,4 @@
-package com.example.damian.homeapp;
+package com.example.damian.homeapp.dodatki;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -14,6 +14,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
+import com.example.damian.homeapp.FindDevicesActivity;
+import com.example.damian.homeapp.HomeActivity;
+import com.example.damian.homeapp.R;
+
 /**
  * Helper class for showing and canceling new message
  * notifications.
@@ -25,7 +29,6 @@ public class MessageNotification {
     /**
      * The unique identifier for this type of notification.
      */
-    private static final String NOTIFICATION_TAG = "NewMessage";
 
     /**
      * Shows the notification, or updates a previously shown notification of
@@ -42,13 +45,18 @@ public class MessageNotification {
      *
      * @see #cancel(Context)
      */
+
+    private static NotificationCompat.Builder builder;
+
+    private static NotificationManager nm;
+
     public static void notify(final Context context,
                               final String exampleString, final int number) {
         final Resources res = context.getResources();
 
         // This image is used as the notification's large icon (thumbnail).
         // TODO: Remove this if your notification has no relevant thumbnail.
-        final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.example_picture);
+        final Bitmap picture = BitmapFactory.decodeResource(res, R.mipmap.ic_launcher);
 
 
 
@@ -61,10 +69,8 @@ public class MessageNotification {
 
         final String ticker = exampleString;
         final String title = exampleString;
-        final String text = res.getString(
-                R.string.new_message_notification_placeholder_text_template, exampleString);
 
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+        builder = new NotificationCompat.Builder(context)
 
                 // Set appropriate defaults for the notification light, sound,
                 // and vibration.
@@ -78,16 +84,19 @@ public class MessageNotification {
 
                 // Use a default priority (recognized on devices running Android
                 // 4.1 or later)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
                 // Provide a large icon, shown with the notification in the
                 // notification drawer on devices running Android 3.0 or later.
                 .setLargeIcon(picture)
 
                 // Set ticker text (preview) information for this notification.
-                .setTicker(ticker);
+                .setTicker(ticker)
 
-                // Automatically dismiss the notification when it is touched.
+
+                .setOnlyAlertOnce(true).setAutoCancel(false);
+
+                // Automatically dismiss the notification when it is touched
 
         switch (number){
             case 0:
@@ -117,28 +126,36 @@ public class MessageNotification {
                 break;
 
             case 3:
-                builder.addAction(R.drawable.ic_garage, "Garaż", null )
-                        .addAction(R.drawable.ic_gate, "Brama", null )
-                        .addAction(R.drawable.ic_door, "Dom", null )
+
+                Intent brama = new Intent();
+                brama.setAction("BRAMA");
+                PendingIntent bramaPending = PendingIntent.getBroadcast(context, 0,
+                        brama, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Intent garaz = new Intent();
+                garaz.setAction("GARAZ");
+                PendingIntent garazPending = PendingIntent.getBroadcast(context, 0,
+                        garaz, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Intent dom = new Intent(context, HomeActivity.class);
+                PendingIntent domPending =
+                        PendingIntent.getActivity(context, 0, dom,
+                                Intent.FILL_IN_ACTION);
+
+                builder.addAction(R.drawable.ic_garage, "Garaż", garazPending)
+                        .addAction(R.drawable.ic_gate, "Brama", bramaPending)
+                        .addAction(R.drawable.ic_door, "Dom", domPending )
                         .setSmallIcon(R.drawable.ic_bluetooth_connected).setContentText("info")
                         .setOngoing(true);
                 break;
 
         }
-        notify(context, builder.build());
-    }
-
-    @TargetApi(Build.VERSION_CODES.ECLAIR)
-    private static void notify(final Context context, final Notification notification) {
-        final NotificationManager nm = (NotificationManager) context
+        nm = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
-            nm.notify(NOTIFICATION_TAG, 0, notification);
-        } else {
-            nm.notify(NOTIFICATION_TAG.hashCode(), notification);
-        }
+        nm.notify(1, builder.build());
     }
+
 
     /**
      * Cancels any notifications of this type previously shown using
@@ -149,9 +166,9 @@ public class MessageNotification {
         final NotificationManager nm = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR) {
-            nm.cancel(NOTIFICATION_TAG, 0);
+            nm.cancel("1", 0);
         } else {
-            nm.cancel(NOTIFICATION_TAG.hashCode());
+            nm.cancel("1".hashCode());
         }
     }
 }

@@ -16,6 +16,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.example.damian.homeapp.dodatki.InteractiveArrayAdapter;
+import com.example.damian.homeapp.dodatki.MessageNotification;
 import com.example.damian.homeapp.dodatki.Model;
 
 import java.util.ArrayList;
@@ -60,6 +61,14 @@ public class SettingsActivity extends AppCompatActivity {
                                         config.removeDefaultDevice();
                                         list.get(0).setInfo(config.getDefaultDeviceName());
                                         listView.setAdapter(adapter);
+
+                                        Intent intent = new Intent(getApplicationContext(),
+                                                TaskService.class);
+                                        stopService(intent);
+
+                                        new MessageNotification().notify(getApplicationContext(),
+                                                "Sparuj swoje urządzenie Bluetooth ", 0);
+
                                         dialog.dismiss();
                                     }
                                 });

@@ -25,6 +25,8 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.damian.homeapp.dodatki.MessageNotification;
+
 import org.w3c.dom.Text;
 
 import java.util.Set;
@@ -161,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             String strReceived = new String(buffer );
             strReceived = strReceived.substring(0, numOfBytesRecived);
 
-            wiadomosc.setText("x: " + buffer + " e " + strReceived);
+            wiadomosc.setText(strReceived);
 
         }
     };
