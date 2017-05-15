@@ -21,7 +21,6 @@ public class ConnectToServerThread extends Thread {
     public ConnectToServerThread(BluetoothDevice device, BluetoothAdapter btAdapter){
         BluetoothSocket tmp = null;
         bluetoothAdapter = btAdapter;
-
         // pobierz BluetoothSocket, aby polaczyc sie z danym urzadzeniem
 
         try
@@ -37,6 +36,7 @@ public class ConnectToServerThread extends Thread {
     public void run(){
         //wylaczam wykrywanie, bo spowalnia polaczenie
         bluetoothAdapter.cancelDiscovery();
+
         try{
             //bedziemy laczyc sie poprzez gniazdo. to bedzie blokowac az do powodzenia lub
             // odrzucenia wyjatku

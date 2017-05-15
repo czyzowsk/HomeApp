@@ -39,8 +39,6 @@ public class CommsThread extends Thread {
         byte[] buffer = new byte[1024];
 
         int bytes;
-        MainActivity.isConnected = true;
-
 
         // nasluchiwanie do czasu pojawienia sie wątku
 
@@ -48,6 +46,7 @@ public class CommsThread extends Thread {
 
             try{
                 bytes = inputStream.read(buffer);
+
                 MainActivity.UIupdater.obtainMessage(0, bytes, -1, buffer).sendToTarget();
             }
             catch (IOException e) {

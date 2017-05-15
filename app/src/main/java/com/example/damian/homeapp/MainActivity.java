@@ -153,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
         startActivity(i);
     }
 
+    private static String strReceived = " = ";
+
     static Handler UIupdater = new Handler() {
 
         @Override
@@ -160,13 +162,21 @@ public class MainActivity extends AppCompatActivity {
 
             int numOfBytesRecived = msg.arg1;
             byte[] buffer = (byte[]) msg.obj;
-            String strReceived = new String(buffer );
+            strReceived = new String(buffer );
             strReceived = strReceived.substring(0, numOfBytesRecived);
 
             wiadomosc.setText(strReceived);
 
         }
     };
+
+     public static int getTemperatura1(){
+            String temperatura;
+            if (strReceived.contains("t1="))
+                temperatura= "" + strReceived;
+
+            return 1;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

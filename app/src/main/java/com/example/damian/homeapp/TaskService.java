@@ -64,8 +64,7 @@ public class TaskService extends Service {
         //pamietaj aby wszystkie odbiorniki wyrejestrowac!
         unregisterReceiver(mReceiver);
         MainActivity.isConnected = false;
-        if(connectToServerThread != null)
-            connectToServerThread.cancel();
+        connectToServerThread.cancel();
 
     }
 
@@ -136,6 +135,7 @@ public class TaskService extends Service {
             if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
                 notification.notify(getApplicationContext(), "Połączono z " +
                         defaultBluetoothDevice.getName(), 3);
+                MainActivity.isConnected = true;
             } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 notification.notify(getApplicationContext(), "Szukam " +
                         config.getDefaultDeviceName(), 2);
@@ -162,7 +162,7 @@ public class TaskService extends Service {
                     String action = intent.getAction();
 
                     if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                                              BluetoothDevice device =
+                        BluetoothDevice device =
                                 intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                         if (device.getAddress().equals(config.getDefaultDevice())) {
