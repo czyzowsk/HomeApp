@@ -162,21 +162,28 @@ public class MainActivity extends AppCompatActivity {
 
             int numOfBytesRecived = msg.arg1;
             byte[] buffer = (byte[]) msg.obj;
-            strReceived = new String(buffer );
+            strReceived = new String(buffer);
             strReceived = strReceived.substring(0, numOfBytesRecived);
 
-            wiadomosc.setText(strReceived);
+
+            String[] strings = strReceived.split("\"");
+
+            if (strings.length>1) {
+                wiadomosc.setText(strings[1]);
+
+                try {
+                    HomeActivity.PlaceholderFragment.handler
+                            .obtainMessage(0, strings[3])
+                            .sendToTarget();
+                }catch (Exception e){
+
+                }
+            }
+
+
 
         }
     };
-
-     public static int getTemperatura1(){
-            String temperatura;
-            if (strReceived.contains("t1="))
-                temperatura= "" + strReceived;
-
-            return 1;
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

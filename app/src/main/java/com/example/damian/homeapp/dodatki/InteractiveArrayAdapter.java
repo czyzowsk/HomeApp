@@ -38,34 +38,22 @@ public class InteractiveArrayAdapter extends ArrayAdapter<Model> {
     static class ViewHolder {
         protected TextView text;
         protected TextView textSecond;
-        protected Switch mSwitch;
-        protected RelativeLayout relativeLayout;
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        View view = null;
-        final SharedPref config = new SharedPref(context);
-        if (convertView == null) {
-            LayoutInflater inflator = context.getLayoutInflater();
-            view = inflator.inflate(R.layout.row_layout, null);
-            final ViewHolder viewHolder = new ViewHolder();
-            viewHolder.text = (TextView) view.findViewById(R.id.texFirst);
-            viewHolder.textSecond = (TextView) view.findViewById(R.id.textSecond);
+        LayoutInflater inflater = context.getLayoutInflater();
+        View view = inflater.inflate(R.layout.row_layout, null, true);
 
-            viewHolder.mSwitch = (Switch) view.findViewById(R.id.switch1);
+        ViewHolder holder = new ViewHolder();
 
-            view.setTag(viewHolder);
-        } else {
-            view = convertView;
-        }
+        holder.text = (TextView) view.findViewById(R.id.texFirst);
+        holder.textSecond = (TextView) view.findViewById(R.id.textSecond);
 
-        ViewHolder holder = (ViewHolder) view.getTag();
-        holder.text.setText(list.get(position).getName());
-        holder.textSecond.setText(list.get(position).getInfo());
+        Model mModel = list.get(position);
 
-        holder.mSwitch.setChecked(list.get(position).isSelected());
-        holder.mSwitch.setVisibility(list.get(position).switchIsVisible());
+        holder.text.setText(mModel.getName());
+        holder.textSecond.setText(mModel.getInfo());
 
         return view;
     }

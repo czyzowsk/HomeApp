@@ -62,9 +62,9 @@ public class TaskService extends Service {
     public void onDestroy() {
         super.onDestroy();
         //pamietaj aby wszystkie odbiorniki wyrejestrowac!
-        unregisterReceiver(mReceiver);
         MainActivity.isConnected = false;
-        connectToServerThread.cancel();
+        if(connectToServerThread != null)
+            connectToServerThread.cancel();
 
     }
 
@@ -80,13 +80,12 @@ public class TaskService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+
+        registerReceiver(mReceiver, filter);
 
         filter1 = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 
-        registerReceiver(mReceiver, filter);
 
     }
 
@@ -113,6 +112,8 @@ public class TaskService extends Service {
         defaultBluetoothDevice = device;
         connectToServerThread = new ConnectToServerThread(device, mBluetoothAdapter);
         connectToServerThread.start();
+        MainActivity.isConnected = true;
+
 
     }
 
@@ -136,6 +137,7 @@ public class TaskService extends Service {
                 notification.notify(getApplicationContext(), "Połączono z " +
                         defaultBluetoothDevice.getName(), 3);
                 MainActivity.isConnected = true;
+
             } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 notification.notify(getApplicationContext(), "Szukam " +
                         config.getDefaultDeviceName(), 2);
@@ -181,6 +183,7 @@ public class TaskService extends Service {
                     public void onReceive(Context context, Intent intent) {
 
                         if (!MainActivity.isConnected) {
+                            connectToServerThread = null;
                             mBluetoothAdapter.startDiscovery();
                         }
                         else {

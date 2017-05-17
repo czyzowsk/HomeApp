@@ -36,8 +36,6 @@ import android.widget.Toast;
 import com.example.damian.homeapp.dodatki.VerticalProgressBar;
 import com.example.damian.homeapp.dodatki.VerticalSeekBar;
 
-import static com.example.damian.homeapp.HomeActivity.PlaceholderFragment.tempAktualna;
-
 public class HomeActivity extends AppCompatActivity {
 
     /**
@@ -115,7 +113,8 @@ public class HomeActivity extends AppCompatActivity {
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
         TextView tempZadana;
-        static  TextView tempAktualna;
+        static Handler handler;
+
 
         public PlaceholderFragment() {
 
@@ -125,8 +124,6 @@ public class HomeActivity extends AppCompatActivity {
          * Returns a new instance of this fragment for the given section
          * number.
          */
-
-        static Handler timerHandler = new Handler();
 
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
@@ -144,7 +141,6 @@ public class HomeActivity extends AppCompatActivity {
                 VerticalSeekBar seekBar = (VerticalSeekBar) rootView.findViewById(R.id.temp_seekBar);
                 seekBar.setMax(16);
 
-
                 final android.support.v7.widget.CardView cardView1 = (android.support.v7.widget.CardView)
                         rootView.findViewById(R.id.card_1);
 
@@ -152,10 +148,10 @@ public class HomeActivity extends AppCompatActivity {
                 final TextView lightTextView = (TextView) rootView.findViewById(R.id.light_text);
 
                 switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                    //ekran 1:
+
                     case 1:
                         tempZadana = (TextView) rootView.findViewById(R.id.temp_zadana);
-                        tempAktualna = (TextView) rootView.findViewById(R.id.temp_aktualna);
+                        final TextView tempAktualna1 = (TextView) rootView.findViewById(R.id.temp_aktualna);
                         final VerticalProgressBar progressBar = (VerticalProgressBar)
                                 rootView.findViewById(R.id.temp_aktual);
                         progressBar.setMax(16);
@@ -165,6 +161,7 @@ public class HomeActivity extends AppCompatActivity {
                         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                             int temperatura = progress + 16;
                             tempZadana.setText(temperatura + "°C");
+                            seekBar.setScrollBarStyle(R.style.FullscreenTheme);
                         }
 
                         @Override
@@ -197,18 +194,15 @@ public class HomeActivity extends AppCompatActivity {
                             }
                         });
 
-
-
-                        Runnable timerRunnable = new Runnable() {
+                        handler = new Handler(){
                             @Override
-                            public void run() {
-                                tempAktualna.setText(MainActivity.getTemperatura1());
-                                progressBar.setProgress(MainActivity.getTemperatura1());
+                            public void handleMessage(Message msg) {
+                                super.handleMessage(msg);
 
-                                timerHandler.postDelayed(this, 5000);
+                                tempAktualna1.setText(msg.obj.toString() + "°C");
                             }
                         };
-                        timerHandler.postDelayed(timerRunnable, 0);
+
                         return rootView;
                     //ekran 2:
                     case 2:
@@ -216,17 +210,25 @@ public class HomeActivity extends AppCompatActivity {
                         return rootView;
                     //ekran 3:
                     case 3:
-                        Runnable timerRunnable3 = new Runnable() {
-                            @Override
-                            public void run() {
-                                tempAktualna.setText(MainActivity.getTemperatura1() + 3);
-                                timerHandler.postDelayed(this, 5000);
-                            }
-                        };
-                        timerHandler.postDelayed(timerRunnable3, 0);
 
                         return rootView;
                 }
+
+
+                new Thread(){
+                    @Override
+                    public void run() {
+                        super.run();
+                        handler.obtainMessage();
+                        try {
+                            sleep(2000);
+                        }catch (Exception e){
+
+                        }
+
+                    }
+                };
+
 
             return null;
 

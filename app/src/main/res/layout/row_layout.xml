@@ -38,17 +38,5 @@
         android:layout_alignParentEnd="true"
         android:id="@+id/textSecond" />
 
-
-    <Switch
-        android:id="@+id/switch1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:checked="false"
-        android:cursorVisible="false"
-        android:clickable="false"
-        android:padding="8dp"
-        />
-
 </RelativeLayout>
 

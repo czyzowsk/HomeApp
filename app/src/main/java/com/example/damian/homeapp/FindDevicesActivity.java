@@ -79,7 +79,9 @@ public class FindDevicesActivity extends ListActivity{
                                 BluetoothDevice.EXTRA_DEVICE);
                         if (!discoveredDevices.contains(device)) {
                             discoveredDevices.add(device);
-                            discoveredDevicesNames.add(device.getName());
+                            if(device.getName() != null)
+                                discoveredDevicesNames.add(device.getName());
+                            else discoveredDevicesNames.add(device.getAddress());
                             setListAdapter(new ArrayAdapter<>(getBaseContext(),
                                     android.R.layout.simple_list_item_1, discoveredDevicesNames));
                         }
